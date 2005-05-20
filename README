@@ -1,0 +1,151 @@
+GDChart Module for AOLserver 3.x/4.x
+Release 1.1
+vlad@crystalballinc.com
+
+This is AOLserver module that implements interface to GDChart library
+http://www.fred.net/brv/chart/ by Bruce Verderaime (brv@fred.net).
+
+The library has been modified:
+
+  - added thread-safe support
+  - ability to dynamically add data sets
+  - limited legend support
+
+Compiling and Installing
+
+To compile this driver, you'll need to have GD library version 1.8 or higher
+compiled and installed. AOLServer can be installed or source distribution may be used.
+
+On some RedHat systems AOLserver configure script picks up libieee library.
+This module will fail during link, in order to fix it remove -lieee from
+Makefile.global file.
+
+Usage
+
+    ns_gdchart usage:
+ 
+      ns_gdchart create
+        returns chart handle to be used in subsequent calls. Takes configuration
+        options as name - value pairs.
+
+        The following options can be specified:
+           type - line,area,bar,floatingbar,hiloclose,combolinebar,combohlcbar,
+                  combolinearea,combolineline,combohlcarea,3dhiloclose,
+                  3dcombolinebar,3dcombolinearea,3dcombolineline,3dcombohlcbar,
+                  3dcombohlcarea,3dbar,3dfloatingbar,3darea,3dline,linearea
+           bgcolor - background color as 0xRRGGBB
+           plotcolor - plotting color
+           title - chart title at the top
+           titlefont - font for title
+           titleptsize - size of the font for titles
+           xtitle - title of the x axis
+           xtitlefont - font for the x axis
+           xtitleptsize - size of the font for the x axis
+           ytitle - title of the y axis
+           ytitlefont - font for the title for the y axis
+           ytitleptsize - size of the font for the y axis
+           xaxisangle - x axis angle
+           xaxisfont - x axis font
+           xaxisptsize - x axis font size
+           barwidth - width of the bars
+           imagetype - type of the image: png, jpeg or wbmp
+           bgimage - background image
+           ytitle2 - title for y2 axis (right side)
+           ytitlesize - size fo the y title
+           volcolor - volume color
+           3ddepth - 3D depth
+           grid - 1 to dispaly grid lines
+           linecolor - color for lines 
+           titlecolor - color of the title
+           xtitlecolor - color of x title
+           ytitlecolor - color of y title
+           ytitle2color - color of y2 title
+           xlabelcolor - color of x labels
+           ylabelcolor - color of y labels
+           ylabel2color - color of y2 labels
+           border - 1 for all borders, 2 for x border, 
+                    4 for y border, 8 for y2 border, 16 for top border
+           stacktype - depth, sum, beside, layer
+           ylabelfmt - printf style formatting
+           ylabel2fmt - printf style formatting
+           gridcolor - color for grid
+           ticks - -2 for labels, -1 for points, >= 0 both
+           reqymin - requested min value
+           reqymax - requested max value
+           reqyinterval - requested interval
+           annotext - annotation text
+           annofont - annotation font name
+           annofontsize - annotation font size
+           annopoint - annotation point 
+           annocolor - annotation color
+           annoptsize - annotation size
+           xlabelspacing - spacing for x labels
+           ylabeldensity - y labels density
+           interpolations - 1 to do interpolations
+           xaxis - 1 to display x axis
+           yaxis - 1 to display y axis
+           yaxis2 - 1 to display y2 axis
+           yvalstyle -
+           3dangle - 3D angle
+           thumbnail - 1 to disable grid and ticks
+           randomsetcolors - generate random colors for each set
+           randomextcolors - generate random colors for each point
+           scattercolor - color for scatter
+           holdimage - 0 destroy image, 1 to keep image
+           hlcstyle - diamond, closeconnected, connecting, icap
+           hlccapwidth - width for HLC caps
+           width - chart width
+           height - chart height
+           legend - right, bottom, none
+           legendx - x coordinate for legeng
+           legendy - y coordinate for legend
+           legendcolor - color for legend text
+           hardwidth - physycal width of the graph
+           hardheight - physycal height of the graph
+           hardxorig - offset of x coordinates
+           hardyorig - offset of y coordinates
+        
+        Example:
+           set gdc [ns_gdchart create 
+                           type 3darea \
+                           title Graph \
+                           xtitle Date \
+                           ytitle Price \
+                           width 200 \
+                           height 300 \
+                           linecolor 0xFF0099]
+ 
+      ns_gdchart destroy #c
+        destroys chart and frees memory
+
+      ns_gdchart setlabels #c labellist
+        assigns labels and defines number of points per set, should be called before
+        providing data sets
+
+        Example:
+          ns_gdchart setlabels $gdc { Chicago "New York" "L.A." Atlanta "Paris, MD\n(USA)" London }
+      
+      ns_gdchart #c setdata dataname datalist
+        adds data sets to the chart
+        
+        Example:
+          ns_gdchart setdata $gdc "Q1 Prices" { 0.5 0.09 0.6 0.85 0.0 0.90 }
+          
+      ns_gdchart #c setcolors colorlist
+        assigns colors for data sets, each color per set
+        
+        Example:
+          ns_gdchart setcolors $gdc { 0x008080 0x8080FF }
+
+      ns_gdchart save #c imagefile
+        saves chart in the specified image file
+
+To run examples in test.tcl connect to aolserver via nscp module and
+type source path_to_distrib/test.tcl or put the test.tcl script somewhere
+under pageroot and call it via browser as http://yourhost/path/test.tcl
+It will generate images in the/tmp directory.
+
+Authors
+
+     Vlad Seryakov vlad@crystalballinc.com
+
