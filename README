@@ -1,8 +1,8 @@
-GDChart Module for AOLserver 3.x/4.x
+GDChart Module for NaviServer 4.x
 Release 1.1
 vlad@crystalballinc.com
 
-This is AOLserver module that implements interface to GDChart library
+This is NaviServer module that implements interface to GDChart library
 http://www.fred.net/brv/chart/ by Bruce Verderaime (brv@fred.net).
 
 The library has been modified:
@@ -14,9 +14,9 @@ The library has been modified:
 Compiling and Installing
 
 To compile this driver, you'll need to have GD library version 1.8 or higher
-compiled and installed. AOLServer can be installed or source distribution may be used.
+compiled and installed. NaviServer can be installed or source distribution may be used.
 
-On some RedHat systems AOLserver configure script picks up libieee library.
+On some RedHat systems NaviServer configure script picks up libieee library.
 This module will fail during link, in order to fix it remove -lieee from
 Makefile.global file.
 
@@ -140,7 +140,7 @@ Usage
       ns_gdchart save #c imagefile
         saves chart in the specified image file
 
-To run examples in test.tcl connect to aolserver via nscp module and
+To run examples in test.tcl connect to NaviServer via nscp module and
 type source path_to_distrib/test.tcl or put the test.tcl script somewhere
 under pageroot and call it via browser as http://yourhost/path/test.tcl
 It will generate images in the/tmp directory.
