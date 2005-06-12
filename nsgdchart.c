@@ -78,7 +78,7 @@ static int GDCInterpInit(Tcl_Interp * interp,void *context)
 static int
 GDCCmd(ClientData arg,Tcl_Interp * interp,int objc,Tcl_Obj * CONST objv[])
 {
-    int i,j,k,argc;
+    int i,j,k,argc,opt,cmd;
     Tcl_Obj **argv;
     char *val;
     GDC_T *gdc = 0;
@@ -86,14 +86,14 @@ GDCCmd(ClientData arg,Tcl_Interp * interp,int objc,Tcl_Obj * CONST objv[])
     enum cmds {
 	cmdCreate,cmdSet,cmdSetData,cmdSetLabels,cmdSetColors,cmdSkipLabels,
         cmdSave,cmdDestroy
-    } cmd;
-    static char *Cmds[] = {
+    };
+    static const char *Cmds[] = {
 	"create","set","setdata","setlabels","setcolors","skiplabels",
         "save","destroy",
 	0
     };
 
-    static char *Types[] = {
+    static const char *Types[] = {
 	"line","area","bar","floatingbar","hiloclose","combolinebar","combohlcbar",
         "combolinearea","combolineline","combohlcarea","3dhiloclose",
         "3dcombolinebar","3dcombolinearea","3dcombolineline","3dcombohlcbar",
@@ -115,8 +115,8 @@ GDCCmd(ClientData arg,Tcl_Interp * interp,int objc,Tcl_Obj * CONST objv[])
         optHoldImage,optHLCStyle,optHLCCapWidth,optWidth,optHeight,optLineColor,
         optLegend,optLegendX,optLegendY,optLegendColor,optHardWidth,optHardHeight,
         optHardXOrig,optHardYOrig,optGridOnTop
-    } opt;
-    static char *Opts[] = {
+    };
+    static const char *Opts[] = {
 	"type","bgcolor","plotcolor","title","titlefont","titleptsize",
         "xtitle","xtitlefont","xtitleptsize","ytitle","ytitlefont","ytitleptsize",
         "xaxisangle","xaxisfont","xaxisptsize","barwidth","imagetype",

@@ -1017,14 +1017,16 @@ gdcGrid:
       /* since now "odd" intervals may be requested,try to step starting at 0,  */
       /* if lowest < 0 < highest                                                  */
       for(i = -1; i <= 1; i += 2) {	/* -1,1 */
-	if(i == -1)
+	if(i == -1) {
 	  if(lowest >= 0.0) continue;
-	else
+	} else {
 	  tmp_y = MIN(0,highest);	/*      step down to lowest */
-	if(i == 1)
+        }
+	if(i == 1) {
 	  if(highest <= 0.0) continue;
-       	else
+       	} else {
       	  tmp_y = MAX(0,lowest);	/*      step up to highest */
+        }
 	do {
 	   int n,d,w;
            char pp[32];
