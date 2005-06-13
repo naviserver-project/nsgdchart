@@ -308,7 +308,7 @@ static char *price_to_str(char *buf,float price,int *numorator,int *demoninator,
     return buf;
 }
 
-static void draw_3d_line(gdImagePtr im,int y0,int x1,int x2,int y1[],int y2[],int xdepth,int ydepth,int num_sets,int clr[],int clrshd[])
+static void draw_3d_line(gdImagePtr im,int y0,int x1,int x2,int y1[],int y2[],int xdepth,int ydepth,int num_sets,unsigned long clr[],unsigned long clrshd[])
 {
 #define F(x,i)	(int)((float)((x)-x1)*slope[i]+(float)y1[i])
     float depth_slope =	xdepth == 0 ? FLT_MAX :(float) ydepth /(float) xdepth;
@@ -565,7 +565,7 @@ int GDC_graph(GDC_T *GDC)
     char set_depth;
     gdImagePtr bg_img = 0;
     int num_sets = GDC->num_sets;
-    float xorig,yorig,vyorig;
+    float xorig,yorig,vyorig = 0;
     float yscl = 0.0;
     float vyscl = 0.0;
     float xscl = 0.0;
@@ -610,8 +610,9 @@ int GDC_graph(GDC_T *GDC)
     int annote_len = 0;
     int annote_hgt = 0;
     int setno = 0;		/* affects PX() and PY() */
-    float *uvol;
-    unsigned long BGColor,LineColor,PlotColor, GridColor,VolColor,AnnoteColor;
+    float *uvol = 0;
+    unsigned long BGColor = 0,LineColor = 0,PlotColor = 0;
+    unsigned long GridColor = 0,VolColor = 0,AnnoteColor = 0;
     float *uvals[num_sets];
     unsigned long ExtVolColor[GDC->num_points];
     unsigned long ExtColor[num_sets][GDC->num_points];
@@ -1613,8 +1614,8 @@ gdcData:
     case GDC_3DCOMBO_LINE_LINE:	{
 	int y1[num_sets];
 	int y2[num_sets];
-	int clr[num_sets];
-	int clrshd[num_sets];
+	unsigned long clr[num_sets];
+	unsigned long clrshd[num_sets];
 
 	for(i = 1; i < GDC->num_points; ++i) {
 	  if(GDC->stack_type == GDC_STACK_DEPTH) {
@@ -1664,7 +1665,8 @@ gdcData:
                            y2,
                            xdepth_3D,
                            ydepth_3D,
-                           set,clr,
+                           set,
+                           clr,
                            clrshd);
 	  }
 	}
