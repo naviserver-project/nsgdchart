@@ -66,7 +66,8 @@ NS_EXPORT int Ns_ModuleInit(char *server,char *module)
 
     path = Ns_ConfigGetPath(server,module,NULL);
     Ns_ConfigGetInt(path,"debug",&gdcDebug);
-    return Ns_TclInitInterps(server,GDCInterpInit,NULL);
+    Ns_TclRegisterTrace(server, GDCInterpInit, 0, NS_TCL_TRACE_CREATE);
+    return NS_OK;
 }
 
 static int GDCInterpInit(Tcl_Interp * interp,void *context)
