@@ -1,4 +1,4 @@
-/* 
+/*
  * The contents of this file are subject to the Mozilla Public License
  * Version 1.1(the "License"); you may not use this file except in
  * compliance with the License. You may obtain a copy of the License at
@@ -20,7 +20,7 @@
  * version of this file under either the License or the GPL.
  *
  * Author Vlad Seryakov vlad@crystalballinc.com
- * 
+ *
  *
  *
  * GDCHART 0.11.4dev  GDC.H  2 Nov 2000
@@ -62,14 +62,19 @@ static GDC_FONT_T GDC_fontc[GDC_numfonts] = {
    { (gdFontPtr) NULL,15,9 }
 };
 
-#define HIGHSET		0
-#define LOWSET		1
-#define CLOSESET	2
+#define HIGHSET		                0
+#define LOWSET		                1
+#define CLOSESET	                2
+#define SQUARE_SIZE                     8
+#define LEGEND_HORIZ_SPACING            10
 
 /* scaled translation onto graph */
 #define PX(x)		                (int)(xorig+(setno*xdepth_3D)+(x)*xscl)
 #define PY(y)		                (int)(yorig-(setno*ydepth_3D)+(y)*yscl)
 #define PV(y)		                (int)(vyorig-(setno*ydepth_3D)+(y)*vyscl)
+#define EPSILON		                ((1.0/256.0)/2.0)
+#define GET_DEC(x)	                ((x) - (float)(int)(x))
+#define F(x,i)	                        (int)((float)((x)-x1)*slope[i]+(float)y1[i])
 
 #define SET_RECT(gdp,x1,x2,y1,y2)	gdp[0].x = gdp[3].x = x1, \
                                         gdp[0].y = gdp[1].y = y1, \
@@ -85,6 +90,16 @@ static GDC_FONT_T GDC_fontc[GDC_numfonts] = {
                                                 gdp[1].x  = x1+(xoff),gdp[1].y = y1-yoff, \
                                                 gdp[2].x  = x2+(xoff),gdp[2].y = y2-yoff, \
                                                 gdp[3].x  = x2,gdp[3].y = y2
+
+#define	HYP_DEPTH	                ((double)((GDC->width+GDC->height)/2) *((double)GDC->threed_depth)/100.0)
+#define RAD_DEPTH	                ((double)GDC->threed_angle*2*M_PI/360)
+#define	NUM_YPOINTS	                (sizeof(ypoints_2f) / sizeof(float))
+
+#define DO_GRID(x1,y1,x2,y2)	        if(GDC->grid) { \
+				          gdImageLine(GDC->image,x1,y1,x2, y2,GridColor); \
+				          gdImageLine(GDC->image,x2,y2,x2, yh,GridColor); \
+                                        } else
+
 
 struct YS {
     int y1;
@@ -152,7 +167,7 @@ static GDC_FONT_SZ_T GDCfnt_sz(char *s,enum GDC_font_size gdfontsz,char *ftfont,
 
 /*
  * gd out a string with '\n's handle FTs(TTFs) and gd fonts
- * gdImageString() draws from the upper left; gdImageStringFT() draws from 
+ * gdImageString() draws from the upper left; gdImageStringFT() draws from
  * lower left(one font height,even with '\n's)! >:-| \*
  */
 static int GDCImageStringNL(gdImagePtr im,GDC_FONT_T *f,char *ftfont,
@@ -258,14 +273,11 @@ static unsigned long _clrshdallocate(gdImagePtr im,unsigned long rawclr,unsigned
 
 /*
  * -- convert a float to a printable string,in form: --
- * -- W N/D -- 
- * -- where W is whole,N is numerator,D is denominator -- 
- * -- the frac N/D is one of 2nds,4,8,16,32,64,128,256ths -- 
- * -- if cannot convert,return str of the float -- 
+ * -- W N/D --
+ * -- where W is whole,N is numerator,D is denominator --
+ * -- the frac N/D is one of 2nds,4,8,16,32,64,128,256ths --
+ * -- if cannot convert,return str of the float --
  */
-
-#define EPSILON		((1.0/256.0)/2.0)
-#define GET_DEC(x)	((x) - (float)(int)(x))
 
 static char *price_to_str(char *buf,float price,int *numorator,int *demoninator,int *decimal,char *fltfmt)
 {
@@ -274,11 +286,12 @@ static char *price_to_str(char *buf,float price,int *numorator,int *demoninator,
 
     *decimal = whole;
     *numorator = *demoninator = 0;
-    if(fltfmt) {
+
+    if(fltfmt && *fltfmt) {
       sprintf(buf,fltfmt,price);
       return buf;
     }
-    
+
     numr = dec * 256;
     /* check if we have a perfect fration in 256ths */
     rdec = GET_DEC(numr);
@@ -310,7 +323,6 @@ static char *price_to_str(char *buf,float price,int *numorator,int *demoninator,
 
 static void draw_3d_line(gdImagePtr im,int y0,int x1,int x2,int y1[],int y2[],int xdepth,int ydepth,int num_sets,unsigned long clr[],unsigned long clrshd[])
 {
-#define F(x,i)	(int)((float)((x)-x1)*slope[i]+(float)y1[i])
     float depth_slope =	xdepth == 0 ? FLT_MAX :(float) ydepth /(float) xdepth;
     float slope[num_sets];
     struct YS ypts[num_sets];
@@ -418,8 +430,7 @@ static int barcmpr(const void *a,const void *b)
     return 0;
 }
 
-/* simple two-point linear interpolation */
-/* attempts between first,then nearest */
+/* simple two-point linear interpolation, attempts between first,then nearest */
 static void do_interpolations(int num_points,int interp_point,float vals[])
 {
     int i,j;
@@ -467,9 +478,8 @@ GDC_T *GDC_alloc()
     gdc->height = 300;
     gdc->image_type = GDC_PNG;
     gdc->jpeg_quality = -1;
-    gdc->generate_img = TRUE;
     gdc->legend = -1;
-    gdc->hold_img = GDC_DESTROY_IMAGE;
+    gdc->hold = GDC_DESTROY_IMAGE;
     gdc->title_size = GDC_MEDBOLD;
     gdc->ytitle_size = GDC_MEDBOLD;
     gdc->xtitle_size = GDC_MEDBOLD;
@@ -545,18 +555,6 @@ void GDC_free(GDC_T *gdc)
     ns_free(gdc);
 }
 
-#define SQUARE_SIZE 8
-#define LEGEND_HORIZ_SPACING 10
-
-#define DO_TICK(x,y)		if(GDC->ticks) gdImageLine(GDC->image,x,y,x, y+2,GridColor); else
-#define DO_GRID(x1,y1,x2,y2)	if(GDC->grid) { \
-				  gdImageLine(GDC->image,x1,y1,x2, y2,GridColor); \
-				  gdImageLine(GDC->image,x2,y2,x2, yh,GridColor); \
-                                } else
-#define	HYP_DEPTH	        ((double)((GDC->width+GDC->height)/2) *((double)GDC->threed_depth)/100.0)
-#define RAD_DEPTH	        ((double)GDC->threed_angle*2*M_PI/360)
-#define	NUM_YPOINTS	        (sizeof(ypoints_2f) / sizeof(float))
-
 int GDC_graph(GDC_T *GDC)
 {
     int i,j;
@@ -597,8 +595,7 @@ int GDC_graph(GDC_T *GDC)
                    GDC->type == GDC_BAR ||
                    GDC->type == GDC_3DFLOATINGBAR ||
                    GDC->type == GDC_FLOATINGBAR);
-    char do_ylbl_fractions = (!GDC->ylabel_fmt ||
-                              strlen(GDC->ylabel_fmt) == strcspn(GDC->ylabel_fmt,"%geEfF"));
+    char do_ylbl_fractions = (!GDC->ylabel_fmt || strlen(GDC->ylabel_fmt) == strcspn(GDC->ylabel_fmt,"%geEfF"));
     float ylbl_interval = 0.0;
     int xlbl_hgt = 0;
     int xdepth_3Dtotal = 0;
@@ -649,10 +646,6 @@ int GDC_graph(GDC_T *GDC)
     /* sanity checks */
     if(GDC->num_sets <= 0 || GDC->num_points <= 0 || GDC->width <= 0 || GDC->height <= 0) {
       Ns_Log(Error,"num_sets=%d, num_points=%d, width=%d, height=%d",GDC->num_sets,GDC->num_points,GDC->width,GDC->height);
-      return -1;
-    }
-    if(!GDC->image_file && GDC->generate_img) {
-      Ns_Log(Error,"image_file = 0");
       return -1;
     }
     if(GDC->type == GDC_HILOCLOSE ||
@@ -830,7 +823,7 @@ int GDC_graph(GDC_T *GDC)
       grapheight = GDC->height - (xtics + xtitle_hgt + xlabel_hgt + title_hgt + annote_hgt + ydepth_3Dtotal + 2);
       if(GDC->hard_size && GDC->hard_grapheight) grapheight = GDC->hard_grapheight;
       GDC->hard_grapheight = grapheight;
-      /* before width can be known... */
+
       /* ----- y labels intervals ----- */
       {
 	/* possible y gridline points */
@@ -856,8 +849,9 @@ int GDC_graph(GDC_T *GDC)
         }
         /* one "space" interval above + below */
 	ylbl_density_space_intvl = (max_num_ylbls - 2.0) * GDC->ylabel_density / 100.0;
-	for(i = 1; i < NUM_YPOINTS; ++i)
+	for(i = 1; i < NUM_YPOINTS; ++i) {
           if((highest - lowest) / ypoints[i] < ylbl_density_space_intvl) break;
+        }
 	ylbl_interval = GDC->requested_yinterval != GDC_NOVALUE &&
                         GDC->requested_yinterval > ypoints[i - 1] ?
                               GDC->requested_yinterval : ypoints[i - 1];
@@ -908,10 +902,11 @@ int GDC_graph(GDC_T *GDC)
         vyscl = -((float) grapheight) / hilow_diff;
         vyorig =(float) grapheight + ABS(vyscl) * MIN(vlowest,vhighest)	+ ydepth_3Dtotal + title_hgt + annote_hgt;
       }
-      xorig =(float)(GDC->width -(graphwidth + vtitle_hgt + vtics + vlabel_wth));
+      xorig =(float)(GDC->width - (graphwidth + vtitle_hgt + vtics + vlabel_wth));
       if(GDC->hard_size && GDC->hard_xorig) xorig = GDC->hard_xorig;
       GDC->hard_xorig = xorig;
       yorig = (float) grapheight + ABS(yscl) * MIN(lowest,highest) + ydepth_3Dtotal + title_hgt + annote_hgt;
+      if(GDC->hard_size && GDC->hard_yorig) yorig = GDC->hard_yorig;
       GDC->hard_yorig = yorig;
 
       hlf_barwdth =(int)((float)(PX(2) - PX(1)) *(((float) GDC->bar_width / 100.0) / 2.0));
@@ -919,7 +914,7 @@ int GDC_graph(GDC_T *GDC)
     }
 
     /* ----- OK start the graphic ----- */
-    if(!(GDC->hold_img & GDC_REUSE_IMAGE)) {
+    if(!(GDC->hold & GDC_REUSE_IMAGE)) {
       if(GDC->image) gdImageDestroy(GDC->image);
       GDC->image = 0;
     }
@@ -943,8 +938,7 @@ int GDC_graph(GDC_T *GDC)
     if(GDC->BGImage) {
       FILE *in = fopen(GDC->BGImage,"rb");
       if(in) {
-        /* assume PNG */
-        /* should determine GDC->type by file extension,option,... */
+        /* assume PNG , should determine GDC->type by file extension,option,... */
         if((bg_img = gdImageCreateFromPng(in))) {
           int bgxpos = gdImageSX(bg_img) < GDC->width ? GDC->width / 2 - gdImageSX(bg_img) / 2 : 0;
           int bgypos = gdImageSY(bg_img) < GDC->height ? GDC->height / 2 - gdImageSY(bg_img) / 2 : 0;
@@ -957,7 +951,7 @@ int GDC_graph(GDC_T *GDC)
       }
     }
 
-    for(j = 0; j < num_sets; ++j)
+    for(j = 0; j < num_sets; ++j) {
       for(i = 0; i < GDC->num_points; ++i)
 	if(GDC->ExtColor) {
 	  unsigned long ext_clr = *(GDC->ExtColor + GDC->num_points * j + i);
@@ -972,6 +966,7 @@ int GDC_graph(GDC_T *GDC)
 	  ExtColor[j][i] = PlotColor;
 	  if(threeD) ExtColorShd[j][i] = clrshdallocate(GDC->image,GDC->PlotColor);
 	}
+    }
 
     if(GDC->transparent_bg) gdImageColorTransparent(GDC->image,BGColor);
 
@@ -990,10 +985,10 @@ int GDC_graph(GDC_T *GDC)
                        GDC->height - 1 - xtftsz.h - 1,
                        GDC->xtitle,titlecolor,GDC_JUSTIFY_CENTER,NULL);
     }
-    /* ----- start drawing ----- */
     if(GDC->grid_on_top) goto gdcData;
 
 gdcGrid:
+    /* if no grid, on 3D, border needs to handle it */
     if(!GDC->grid && threeD && (GDC->border & (GDC_BORDER_ALL|GDC_BORDER_X|GDC_BORDER_Y))) {
       int x1,x2,y1,y2;
       x1 = PX(0);
@@ -1020,13 +1015,11 @@ gdcGrid:
       for(i = -1; i <= 1; i += 2) {	/* -1,1 */
 	if(i == -1) {
 	  if(lowest >= 0.0) continue;
-	} else {
-	  tmp_y = MIN(0,highest);	/*      step down to lowest */
+          tmp_y = MIN(0,highest);	/*      step down to lowest */
         }
 	if(i == 1) {
 	  if(highest <= 0.0) continue;
-       	} else {
-      	  tmp_y = MAX(0,lowest);	/*      step up to highest */
+          tmp_y = MAX(0,lowest);	/*      step up to highest */
         }
 	do {
 	   int n,d,w;
@@ -1121,8 +1114,7 @@ gdcGrid:
 		 setno = 0;
 	      }
            }
-	} while((i > 0 && ((tmp_y += ylbl_interval) < highest)) ||
-	        (i < 0 && ((tmp_y -= ylbl_interval) > lowest)));
+	} while((i > 0 && ((tmp_y += ylbl_interval) < highest)) || (i < 0 && ((tmp_y -= ylbl_interval) > lowest)));
       }
 
       /* catch last(bottom) grid line - specific to an "off" requested interval */
@@ -1201,14 +1193,23 @@ gdcGrid:
 	yh = PY(highest);
 	setno = 0;		/* reset to foremost */
 
-	if(i == 0)     	/* catch 3D Y back corner */
-	  DO_GRID(x1,y1,x2,y2);
-	  /* labeled points */
-	  if((!GDC->xlabel_ctl && ((i %(1 + GDC->num_points / num_xlbls) == 0) || num_xlbls >= GDC->num_points ||
+	if(i == 0) {    	/* catch 3D Y back corner */
+          if(GDC->grid) {
+	    gdImageLine(GDC->image,x1,y1,x2,y2,GridColor);
+	    gdImageLine(GDC->image,x2,y2,x2,yh,GridColor);
+          }
+        }
+	/* labeled points */
+	if((!GDC->xlabel_ctl && ((i %(1 + GDC->num_points / num_xlbls) == 0) || num_xlbls >= GDC->num_points ||
                GDC->xlabel_spacing == SHRT_MAX)) || (GDC->xlabel_ctl && xi >= 0 && *(GDC->xlabel_ctl + xi))) {
-	    DO_TICK(x1,y1);	/* labeled points tick & grid */
-	    DO_GRID(x1,y1,x2,y2);
-
+	    /* labeled points tick & grid */
+            if(GDC->ticks) {
+              gdImageLine(GDC->image,x1,y1,x1,y1+2,GridColor);
+            }
+            if(GDC->grid) {
+              gdImageLine(GDC->image,x1,y1,x2,y2,GridColor);
+              gdImageLine(GDC->image,x2,y2,x2,yh,GridColor);
+            }
 	    if(!do_bar ||(i > 0 && xi < GDC->num_points))
 	      if(GDC->xaxis && GDC->xlabels && GDC->xlabels[xi] && *(GDC->xlabels[xi])) {
 		char *sts;
@@ -1248,36 +1249,48 @@ gdcGrid:
                                    GDC_JUSTIFY_RIGHT,
 				   NULL);
 	      }
-	    }
-	    /* every point,on-point */
-	    if(i > 0) {
-	      if(GDC->grid == GDC_TICK_POINTS)
-		DO_GRID(x1,y1,x2,y2);
-		else
-                if(GDC->grid > GDC_TICK_NONE) {
-		  int k;
-		  int xt;
-		  int prevx = PX(i - 1);
-		  int intrv_dist =(x1 - prevx) /(GDC->grid + 1);
-		  DO_GRID(x1,y1,x2,y2);
-		  for(k = 0,xt = prevx + intrv_dist;k < GDC->grid && xt < x1; ++k,xt += intrv_dist)
-		    DO_GRID(xt,y1,xt + xdepth_3Dtotal,y2);
-		}
-
-		if(GDC->ticks == GDC_TICK_POINTS)	/* --- TICKS --- */
-		  DO_TICK(x1,y1);
-		else
-                if(GDC->ticks > GDC_TICK_NONE) {
-		  int k;
-		  int xt;
-		  int prevx = PX(i - 1);
-		  int intrv_dist =(x1 - prevx) /(GDC->ticks + 1);
-		  DO_TICK(x1,y1);
-		  for(k = 0,xt = prevx + intrv_dist;k < GDC->ticks && xt < x1; ++k,xt += intrv_dist)
-		    DO_TICK(xt,y1);
-		}
-	    }
 	}
+	/* every point,on-point */
+	if(i > 0) {
+	  if(GDC->grid == GDC_TICK_POINTS) {
+            if(GDC->grid) {
+              gdImageLine(GDC->image,x1,y1,x2,y2,GridColor);
+	      gdImageLine(GDC->image,x2,y2,x2,yh,GridColor);
+            }
+          } else
+          if(GDC->grid > GDC_TICK_NONE) {
+	      int k;
+	      int xt;
+	      int prevx = PX(i - 1);
+	      int intrv_dist =(x1 - prevx) /(GDC->grid + 1);
+
+              if(GDC->grid) {
+	        gdImageLine(GDC->image,x1,y1,x2,y2,GridColor);
+                gdImageLine(GDC->image,x2,y2,x2,yh,GridColor);
+              }
+	      for(k = 0,xt = prevx + intrv_dist;k < GDC->grid && xt < x1; ++k,xt += intrv_dist) {
+                if(GDC->grid) {
+           	  gdImageLine(GDC->image,xt,y1,xt+xdepth_3Dtotal,y2,GridColor);
+	          gdImageLine(GDC->image,xt+xdepth_3Dtotal,y2,xt+xdepth_3Dtotal,yh,GridColor);
+                }
+              }
+	  }
+	  if(GDC->ticks == GDC_TICK_POINTS) {      /* --- TICKS --- */
+            if(GDC->ticks) gdImageLine(GDC->image,x1,y1,x1,y1+2,GridColor);
+	  } else
+          if(GDC->ticks > GDC_TICK_NONE) {
+	    int k;
+	    int xt;
+	    int prevx = PX(i - 1);
+	    int intrv_dist =(x1 - prevx) /(GDC->ticks + 1);
+            if(GDC->ticks) {
+              gdImageLine(GDC->image,x1,y1,x1,y1+2,GridColor);
+            }
+            for(k = 0,xt = prevx + intrv_dist;k < GDC->ticks && xt < x1; ++k,xt += intrv_dist)
+              if(GDC->ticks) gdImageLine(GDC->image,xt,y1,xt,y1+2,GridColor);
+	  }
+	}
+      }
     }
     /* ----- volume plotting ----- */
     if(do_vol) {
@@ -1974,33 +1987,31 @@ gdcFinish:
       }
     }
     if(GDC->border) {
-      int x1,y1,x2,y2;
+      int x1 = PX(0);
+      int y1 = PY(highest);
+      int x2 = PX(GDC->num_points - 1 + (do_bar ? 2 : 0));
+      int y2 = PY(lowest);
 
-      x1 = PX(0);
-      y1 = PY(highest);
-      x2 = PX(GDC->num_points - 1 +(do_bar ? 2 : 0));
-      y2 = PY(lowest);
       if(GDC->border == GDC_BORDER_ALL || (GDC->border & GDC_BORDER_Y))
 	gdImageLine(GDC->image,x1,PY(lowest),x1,y1,LineColor);
-
       setno = set_depth;
       if(GDC->border == GDC_BORDER_ALL || (GDC->border & GDC_BORDER_Y) || (GDC->border & GDC_BORDER_TOP))
 	gdImageLine(GDC->image,x1,y1,PX(0),PY(highest),LineColor);
       if(GDC->border == GDC_BORDER_ALL || (GDC->border & GDC_BORDER_X) || (GDC->border & GDC_BORDER_Y2))
-        gdImageLine(GDC->image,x2,y2,PX(GDC->num_points - 1 +(do_bar ? 2 : 0)),PY(lowest),LineColor);
+        gdImageLine(GDC->image,x2,y2,PX(GDC->num_points - 1 + (do_bar ? 2 : 0)),PY(lowest),LineColor);
       if(GDC->border == GDC_BORDER_ALL || (GDC->border & GDC_BORDER_Y2))
-        gdImageLine(GDC->image,PX(GDC->num_points - 1 +(do_bar ? 2 : 0)),PY(lowest),PX(GDC->num_points - 1 +(do_bar ? 2 : 0)),PY(highest),LineColor);
+        gdImageLine(GDC->image,PX(GDC->num_points - 1 + (do_bar ? 2 : 0)),PY(lowest),PX(GDC->num_points - 1 +(do_bar ? 2 : 0)),PY(highest),LineColor);
       setno = 0;
     }
 
-    if(GDC->Shelf && threeD &&	((lowest < 0.0 && highest > 0.0) ||
-       ((lowest == 0.0 || highest == 0.0) && !(GDC->border & GDC_BORDER_X)))) {
-      int x2 = PX(GDC->num_points - 1 +(do_bar ? 2 : 0)),y2 = PY(0);
+    if(GDC->Shelf && threeD && ((lowest < 0.0 && highest > 0.0) || ((lowest == 0.0 || highest == 0.0) && !(GDC->border & GDC_BORDER_X)))) {
+      int x2 = PX(GDC->num_points - 1 +(do_bar ? 2 : 0));
+      int y2 = PY(0);
 
       gdImageLine(GDC->image,PX(0),PY(0),x2,y2,LineColor);	/* front line */
       setno = set_depth;
       /* depth for 3Ds */
-      gdImageLine(GDC->image,x2,y2,PX(GDC->num_points - 1 +(do_bar ? 2 : 0)),PY(0),LineColor);
+      gdImageLine(GDC->image,x2,y2,PX(GDC->num_points - 1 + (do_bar ? 2 : 0)),PY(0),LineColor);
       setno = 0;		/* set back to foremost */
     }
 
@@ -2087,22 +2098,21 @@ gdcFinish:
                        LegendColor);
       }
     }
-    /* usually GDC_generate_img is used in conjunction with hard or hold options */
-    if(GDC->generate_img && GDC->image_file) {
+    if(GDC->image_file) {
       FILE *fp = fopen(GDC->image_file,"wb");
       if(fp) {
         switch(GDC->image_type) {
          case GDC_JPEG:
 #ifdef HAVE_JPEG
-	    gdImageJpeg(GDC->image,fp,GDC->jpeg_quality);
+            gdImageJpeg(GDC->image,fp,GDC->jpeg_quality);
 #endif
-	    break;
+            break;
          case GDC_WBMP:
-	    gdImageWBMP(GDC->image,PlotColor,fp);
-	    break;
+            gdImageWBMP(GDC->image,PlotColor,fp);
+            break;
          case GDC_PNG:
          default:
-	    gdImagePng(GDC->image,fp);
+            gdImagePng(GDC->image,fp);
         }
         fclose(fp);
       } else
@@ -2110,7 +2120,7 @@ gdcFinish:
     }
     if(bg_img) gdImageDestroy(bg_img);
 
-    if(!(GDC->hold_img & GDC_EXPOSE_IMAGE)) {
+    if(!(GDC->hold & GDC_EXPOSE_IMAGE)) {
       gdImageDestroy(GDC->image);
       GDC->image = 0;
     }

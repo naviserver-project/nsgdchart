@@ -9,8 +9,7 @@ proc samp1 {} {
                          linecolor 0x000000 \
                          legend right \
                          legendx 10 \
-                         legendy 210 \
-                         hardyorig 30]
+                         legendy 200]
   ns_gdchart setlabels $gdc { Chicago "New York" "L.A." Atlanta "Paris, MD\n(USA)" London }
   ns_gdchart setdata $gdc d1 { 0.5 0.09 0.6 0.85 0.0 0.90 }
   ns_gdchart setdata $gdc d2 { 1.9 1.3  0.6 0.75 0.1 2.0 }

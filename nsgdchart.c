@@ -1,4 +1,4 @@
-/* 
+/*
  * The contents of this file are subject to the Mozilla Public License
  * Version 1.1(the "License"); you may not use this file except in
  * compliance with the License. You may obtain a copy of the License at
@@ -20,7 +20,7 @@
  * version of this file under either the License or the GPL.
  *
  * Author Vlad Seryakov vlad@crystalballinc.com
- * 
+ *
  *
  *
  * GDCHART 0.11.4dev  GDC.H  2 Nov 2000
@@ -86,11 +86,11 @@ GDCCmd(ClientData arg,Tcl_Interp * interp,int objc,Tcl_Obj * CONST objv[])
 
     enum cmds {
 	cmdCreate,cmdSet,cmdSetData,cmdSetLabels,cmdSetColors,cmdSkipLabels,
-        cmdSave,cmdDestroy
+        cmdSave,cmdDestroy,cmdImage,cmdReturn
     };
     static const char *Cmds[] = {
 	"create","set","setdata","setlabels","setcolors","skiplabels",
-        "save","destroy",
+        "save","destroy","image","return",
 	0
     };
 
@@ -108,7 +108,7 @@ GDCCmd(ClientData arg,Tcl_Interp * interp,int objc,Tcl_Obj * CONST objv[])
         optXAxisAngle,optXAxisFont,optXAxisPtSize,optBarWidth,optImageType,
         optBgImage,optYTitle2,optYTitleSize,optVolColor,opt3dDepth,optGrid,optTitleColor,
         optXTitleColor,optYTitleColor,optYTitle2Color,optXLabelColor,optYLabelColor,
-        optYLabel2Color,optBorder,optStackType,optYLabelFmt,optYLabel2Fmt,optGridColor,
+        optYLabel2Color,optBorder,optShelf, optStackType,optYLabelFmt,optYLabel2Fmt,optGridColor,
         optTicks,optReqYMin,optReqYMax,optReqYInterval,optAnnoText,optAnnoFont,
         optAnnoFontSize,optAnnoPoint,optAnnoColor,optAnnoPtSize,optXLabelSpacing,
         optYlabelDensity,optInterpolations,optXAxis,optYAxis,optYAxis2,optYValStyle,
@@ -123,7 +123,7 @@ GDCCmd(ClientData arg,Tcl_Interp * interp,int objc,Tcl_Obj * CONST objv[])
         "xaxisangle","xaxisfont","xaxisptsize","barwidth","imagetype",
         "bgimage","ytitle2","ytitlesize","volcolor","3ddepth","grid","titlecolor",
         "xtitlecolor","ytitlecolor","ytitle2color","xlabelcolor","ylabelcolor",
-        "ylabel2color","border","stacktype","ylabelfmt","ylabel2fmt","gridcolor",
+        "ylabel2color","border","shelf", "stacktype","ylabelfmt","ylabel2fmt","gridcolor",
         "ticks","reqymin","reqymax","reqyinterval","annotext","annofont",
         "annofontsize","annopoint","annocolor","annoptsize","xlabelspacing","ylabeldensity",
         "interpolations","xaxis","yaxis","yaxis2","yvalstyle","3dangle","thumbnail",
@@ -305,6 +305,9 @@ GDCCmd(ClientData arg,Tcl_Interp * interp,int objc,Tcl_Obj * CONST objv[])
            case optBorder:
                gdc->border = atoi(val);
                break;
+           case optShelf:
+               gdc->Shelf = atoi(val);
+               break;
            case optStackType:
                if(!strcasecmp(val,"depth")) gdc->stack_type = GDC_STACK_DEPTH; else
                if(!strcasecmp(val,"sum")) gdc->stack_type = GDC_STACK_SUM; else
@@ -320,43 +323,43 @@ GDCCmd(ClientData arg,Tcl_Interp * interp,int objc,Tcl_Obj * CONST objv[])
                gdc->ylabel2_fmt = ns_strdup(val);
                break;
            case optBgColor:
-               Tcl_GetLongFromObj(interp,objv[i+1],&gdc->BGColor);
+               Tcl_GetLongFromObj(interp,objv[i+1],(long*)&gdc->BGColor);
                break;
            case optLineColor:
-               Tcl_GetLongFromObj(interp,objv[i+1],&gdc->LineColor);
+               Tcl_GetLongFromObj(interp,objv[i+1],(long*)&gdc->LineColor);
                break;
            case optPlotColor:
-               Tcl_GetLongFromObj(interp,objv[i+1],&gdc->PlotColor);
+               Tcl_GetLongFromObj(interp,objv[i+1],(long*)&gdc->PlotColor);
                break;
            case optVolColor:
-               Tcl_GetLongFromObj(interp,objv[i+1],&gdc->VolColor);
+               Tcl_GetLongFromObj(interp,objv[i+1],(long*)&gdc->VolColor);
                break;
            case optTitleColor:
-               Tcl_GetLongFromObj(interp,objv[i+1],&gdc->TitleColor);
+               Tcl_GetLongFromObj(interp,objv[i+1],(long*)&gdc->TitleColor);
                break;
            case optXTitleColor:
-               Tcl_GetLongFromObj(interp,objv[i+1],&gdc->XTitleColor);
+               Tcl_GetLongFromObj(interp,objv[i+1],(long*)&gdc->XTitleColor);
                break;
            case optYTitleColor:
-               Tcl_GetLongFromObj(interp,objv[i+1],&gdc->YTitleColor);
+               Tcl_GetLongFromObj(interp,objv[i+1],(long*)&gdc->YTitleColor);
                break;
            case optYTitle2Color:
-               Tcl_GetLongFromObj(interp,objv[i+1],&gdc->YTitle2Color);
+               Tcl_GetLongFromObj(interp,objv[i+1],(long*)&gdc->YTitle2Color);
                break;
            case optXLabelColor:
-               Tcl_GetLongFromObj(interp,objv[i+1],&gdc->XLabelColor);
+               Tcl_GetLongFromObj(interp,objv[i+1],(long*)&gdc->XLabelColor);
                break;
            case optYLabelColor:
-               Tcl_GetLongFromObj(interp,objv[i+1],&gdc->YLabelColor);
+               Tcl_GetLongFromObj(interp,objv[i+1],(long*)&gdc->YLabelColor);
                break;
            case optYLabel2Color:
-               Tcl_GetLongFromObj(interp,objv[i+1],&gdc->YLabel2Color);
+               Tcl_GetLongFromObj(interp,objv[i+1],(long*)&gdc->YLabel2Color);
                break;
            case optGridColor:
-               Tcl_GetLongFromObj(interp,objv[i+1],&gdc->GridColor);
+               Tcl_GetLongFromObj(interp,objv[i+1],(long*)&gdc->GridColor);
                break;
            case optScatterColor:
-               Tcl_GetLongFromObj(interp,objv[i+1],&gdc->ScatterColor);
+               Tcl_GetLongFromObj(interp,objv[i+1],(long*)&gdc->ScatterColor);
                break;
            case optAnnoText:
                memset(gdc->annotation.note,0,MAX_NOTE_LEN+1);
@@ -376,7 +379,7 @@ GDCCmd(ClientData arg,Tcl_Interp * interp,int objc,Tcl_Obj * CONST objv[])
                gdc->annotation.point = atoi(val);
                break;
            case optAnnoColor:
-               Tcl_GetLongFromObj(interp,objv[i+1],&gdc->annotation.color);
+               Tcl_GetLongFromObj(interp,objv[i+1],(long*)&gdc->annotation.color);
                break;
            case optInterpolations:
                gdc->interpolations = atoi(val);
@@ -397,7 +400,7 @@ GDCCmd(ClientData arg,Tcl_Interp * interp,int objc,Tcl_Obj * CONST objv[])
                    *(gdc->ExtColor+(k*gdc->num_points)+j) = (int)rand();
                break;
            case optHoldImage:
-               gdc->hold_img = atoi(val);
+               gdc->hold = atoi(val);
                break;
            case optHLCStyle:
                gdc->HLC_style = 0;
@@ -418,7 +421,8 @@ GDCCmd(ClientData arg,Tcl_Interp * interp,int objc,Tcl_Obj * CONST objv[])
            case optLegend:
                if(!strcasecmp(val,"none")) gdc->legend = -1; else
                if(!strcasecmp(val,"right")) gdc->legend = 0; else
-               if(!strcasecmp(val,"bottom")) gdc->legend = 1;
+               if(!strcasecmp(val,"bottom")) gdc->legend = 1; else
+               if(!strcasecmp(val,"top")) gdc->legend = 2;
                break;
 	  }
 	}
@@ -439,6 +443,40 @@ GDCCmd(ClientData arg,Tcl_Interp * interp,int objc,Tcl_Obj * CONST objv[])
         GDC_graph(gdc);
         break;
 
+    case cmdImage: {
+        int size;
+        Tcl_Obj *result;
+        unsigned char *data;
+
+        gdc->hold = GDC_EXPOSE_IMAGE;
+        GDC_graph(gdc);
+        if((data = gdImagePngPtr(gdc->image, &size))) {
+          result = Tcl_NewByteArrayObj(data,size);
+          if(result != NULL) Tcl_SetObjResult(interp,result);
+          gdFree(data);
+        }
+        break;
+    }
+
+    case cmdReturn: {
+        char *data;
+        int size, status = NS_ERROR;
+        Ns_Conn *conn = Ns_TclGetConn(interp);
+
+        if(conn == NULL) {
+          Tcl_AppendResult(interp, "no connection", NULL);
+          return TCL_ERROR;
+        }
+        gdc->hold = GDC_EXPOSE_IMAGE;
+        GDC_graph(gdc);
+        if((data = gdImagePngPtr(gdc->image, &size))) {
+          status = Ns_ConnReturnData(conn,200,data,size,"image/png");
+          gdFree(data);
+        }
+        Tcl_AppendResult(interp,status == NS_OK ? "1" : "0",NULL);
+        break;
+    }
+
     case cmdSetLabels:
         if(Tcl_ListObjGetElements(interp,objv[3],&argc,&argv) != TCL_OK) return TCL_ERROR;
         for(i = 0; i < argc; i++) {
@@ -455,7 +493,7 @@ GDCCmd(ClientData arg,Tcl_Interp * interp,int objc,Tcl_Obj * CONST objv[])
         ns_free(gdc->SetColor);
         gdc->SetColor = (unsigned long*)ns_calloc(sizeof(unsigned long),gdc->num_sets);
         for(i = 0,j = 0; i < argc && j < gdc->num_sets; i++,j++)
-          Tcl_GetLongFromObj(0,argv[i],&gdc->SetColor[j]);
+          Tcl_GetLongFromObj(0,argv[i],(long*)&gdc->SetColor[j]);
         break;
 
     case cmdSkipLabels:

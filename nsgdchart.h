@@ -1,4 +1,4 @@
-/* 
+/*
  * The contents of this file are subject to the Mozilla Public License
  * Version 1.1(the "License"); you may not use this file except in
  * compliance with the License. You may obtain a copy of the License at
@@ -20,7 +20,7 @@
  * version of this file under either the License or the GPL.
  *
  * Author Vlad Seryakov vlad@crystalballinc.com
- * 
+ *
  *
  * GDCHART 0.11.4dev  GDC.H  2 Nov 2000
  * Copyright Bruce Verderaime 1998-2003
@@ -89,8 +89,12 @@
 #define GDC_NULL			GDC_NOVALUE
 
 #define ABS(x)			        ((x)<0.0? -(x):(x))
+#ifndef MAX
 #define MAX(x,y)			((x)>(y)?(x):(y))
+#endif
+#ifndef MIN
 #define MIN(x,y)			((x)<(y)?(x):(y))
+#endif
 #define TO_RAD(o)			((o)/360.0*(2.0*M_PI))
 
 #define GDC_NOCOLOR			0x1000000L
@@ -245,10 +249,9 @@ typedef struct _GDC_T {
     int legend_y;
 
     gdImagePtr image;
-    GDC_HOLD_IMAGE_T hold_img;
+    GDC_HOLD_IMAGE_T hold;
     GDC_image_type_t image_type;
     int jpeg_quality;
-    char generate_img;
     char *ytitle;
     char *xtitle;
     char *ytitle2;
