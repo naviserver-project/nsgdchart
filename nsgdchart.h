@@ -73,7 +73,7 @@
 #include "gdfontg.h"
 #include "gdfontl.h"
 
-#define VERSION                         "1.1"
+#define _VERSION                        "1.1"
 
 #ifndef M_PI
 #define M_PI	                        3.14159265358979323846

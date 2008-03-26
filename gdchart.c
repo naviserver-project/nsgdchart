@@ -2000,7 +2000,9 @@ int GDC_graph(GDC_T * GDC)
             gdImageString(GDC->image,
                           GDC_fontc[GDC_SMALL].f,
                           x + SQUARE_SIZE + GDC_fontc[GDC_SMALL].w,
-                          y - GDC_fontc[GDC_SMALL].h / 2 + 1, GDC->dlabels[i], LegendColor);
+                          y - GDC_fontc[GDC_SMALL].h / 2 + 1,
+                          (unsigned char*)GDC->dlabels[i],
+                          LegendColor);
         }
     }
     if (GDC->image_file) {
