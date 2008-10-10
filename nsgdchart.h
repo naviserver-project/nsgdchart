@@ -52,20 +52,11 @@
 #ifndef _NSGDC_H
 #define _NSGDC_H
 
-#ifndef _USE_MATH_DEFINES
-#define _USE_MATH_DEFINES
-#endif
-#ifndef _XOPEN_SOURCE
-#define _XOPEN_SOURCE
-#endif
-
-#define USE_TCL8X
-
-#include <math.h>
 #include "ns.h"
 #include <limits.h>
 #include <strings.h>
 #include <float.h>
+#include <math.h>
 #include "gd.h"
 #include "gdfonts.h"
 #include "gdfontt.h"
