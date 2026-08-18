@@ -57,7 +57,7 @@ static GDC_T *gdcList = 0;
 static Ns_Mutex gdcMutex;
 
 static int GDCCmd(ClientData arg, Tcl_Interp * interp, int objc, Tcl_Obj * CONST objv[]);
-static int GDCInterpInit(Tcl_Interp * interp, void *context);
+static int GDCInterpInit(Tcl_Interp * interp, const void *context);
 NS_EXPORT int Ns_ModuleVersion = 1;
 
 NS_EXPORT int Ns_ModuleInit(char *server, char *module)
@@ -70,7 +70,7 @@ NS_EXPORT int Ns_ModuleInit(char *server, char *module)
     return NS_OK;
 }
 
-static int GDCInterpInit(Tcl_Interp * interp, void *context)
+static int GDCInterpInit(Tcl_Interp * interp, const void *context)
 {
     Tcl_CreateObjCommand(interp, "ns_gdchart", GDCCmd, NULL, NULL);
     return NS_OK;
